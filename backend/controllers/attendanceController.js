@@ -81,19 +81,31 @@ export const getAttendance = async (req, res) => {
     // Get all records first
     const allRecords = await Attendance.find(query)
       .populate('studentId', 'name rollNumber')
-      .sort({ date: -1, updatedAt: -1, createdAt: -1 });
+      .sort({ date: -1 });
 
-    // Deduplicate by date on the server side
-    const uniqueRecords = [];
-    const seenDates = new Set();
+    // Deduplicate by date, keeping the LATEST record for each date
+    const dateMap = new Map();
     
     for (const record of allRecords) {
       const dateKey = record.date.toISOString().split('T')[0];
-      if (!seenDates.has(dateKey)) {
-        seenDates.add(dateKey);
-        uniqueRecords.push(record);
+      const existingRecord = dateMap.get(dateKey);
+      
+      if (!existingRecord) {
+        dateMap.set(dateKey, record);
+      } else {
+        // Compare timestamps to keep the latest record
+        const existingTime = new Date(existingRecord.updatedAt || existingRecord.createdAt).getTime();
+        const currentTime = new Date(record.updatedAt || record.createdAt).getTime();
+        
+        if (currentTime > existingTime) {
+          dateMap.set(dateKey, record);
+        }
       }
     }
+
+    // Convert map back to array and sort by date (newest first)
+    const uniqueRecords = Array.from(dateMap.values())
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     console.log('Total records:', allRecords.length, 'Unique records:', uniqueRecords.length);
     res.json({ success: true, data: uniqueRecords });
