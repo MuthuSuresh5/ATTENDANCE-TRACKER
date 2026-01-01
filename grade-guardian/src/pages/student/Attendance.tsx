@@ -5,12 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AttendanceCard from '@/components/AttendanceCard';
 import { useAttendanceSummary, useMonthlyAttendance, useAttendance } from '@/hooks/useApi';
 import { Calendar, TrendingUp, Target, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 
 const StudentAttendance: React.FC = () => {
   const { data: summaryData, isLoading: summaryLoading } = useAttendanceSummary();
   const { data: monthlyData, isLoading: monthlyLoading } = useMonthlyAttendance();
-  const { data: attendanceData, isLoading: attendanceLoading } = useAttendance();
+  const { user } = useAuth();
+  const { data: attendanceData, isLoading: attendanceLoading } = useAttendance({ 
+    studentId: user?.id 
+  });
 
   if (summaryLoading || monthlyLoading || attendanceLoading) {
     return (
