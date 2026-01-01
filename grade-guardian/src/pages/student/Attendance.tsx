@@ -29,23 +29,25 @@ const StudentAttendance: React.FC = () => {
   const monthlyAttendance = monthlyData?.data || [];
   const attendanceRecords = attendanceData?.data || [];
   
-  // Get absent dates - deduplicate by date and keep most recent record for each date
-  const absentDates = attendanceRecords
-    .filter((record: any) => record.status === 'absent')
-    .reduce((unique: any[], record: any) => {
-      const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
-      const existingIndex = unique.findIndex(r => format(new Date(r.date), 'yyyy-MM-dd') === dateKey);
-      if (existingIndex === -1) {
-        unique.push(record);
-      } else {
-        const existingTime = new Date(unique[existingIndex].updatedAt || unique[existingIndex].createdAt || unique[existingIndex].date).getTime();
-        const currentTime = new Date(record.updatedAt || record.createdAt || record.date).getTime();
-        if (currentTime > existingTime) {
-          unique[existingIndex] = record;
-        }
+  // Deduplicate all records first - keep most recent record for each date
+  const uniqueRecords = attendanceRecords.reduce((unique: any[], record: any) => {
+    const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
+    const existingIndex = unique.findIndex(r => format(new Date(r.date), 'yyyy-MM-dd') === dateKey);
+    if (existingIndex === -1) {
+      unique.push(record);
+    } else {
+      const existingTime = new Date(unique[existingIndex].updatedAt || unique[existingIndex].createdAt || unique[existingIndex].date).getTime();
+      const currentTime = new Date(record.updatedAt || record.createdAt || record.date).getTime();
+      if (currentTime > existingTime) {
+        unique[existingIndex] = record;
       }
-      return unique;
-    }, [])
+    }
+    return unique;
+  }, []);
+  
+  // Get absent dates from deduplicated records
+  const absentDates = uniqueRecords
+    .filter((record: any) => record.status === 'absent')
     .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
 
@@ -187,7 +189,7 @@ const StudentAttendance: React.FC = () => {
                           </span>
                         </div>
                       ))}
-                      {Array.from(new Set(attendanceRecords.filter((r: any) => r.status === 'absent').map((r: any) => format(new Date(r.date), 'yyyy-MM-dd')))).length > 10 && (
+                      {Array.from(new Set(uniqueRecords.filter((r: any) => r.status === 'absent').map((r: any) => format(new Date(r.date), 'yyyy-MM-dd')))).length > 10 && (
                         <p className="text-sm text-muted-foreground text-center pt-4">
                           Showing recent 10 absent dates
                         </p>
@@ -210,24 +212,9 @@ const StudentAttendance: React.FC = () => {
                   <CardTitle className="text-lg">Attendance Records</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {attendanceRecords.length > 0 ? (
+                  {uniqueRecords.length > 0 ? (
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {attendanceRecords
-                        .reduce((unique: any[], record: any) => {
-                          const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
-                          const existingIndex = unique.findIndex(r => format(new Date(r.date), 'yyyy-MM-dd') === dateKey);
-                          if (existingIndex === -1) {
-                            unique.push(record);
-                          } else {
-                            // Keep the record with the latest timestamp
-                            const existingTime = new Date(unique[existingIndex].updatedAt || unique[existingIndex].createdAt || unique[existingIndex].date).getTime();
-                            const currentTime = new Date(record.updatedAt || record.createdAt || record.date).getTime();
-                            if (currentTime > existingTime) {
-                              unique[existingIndex] = record;
-                            }
-                          }
-                          return unique;
-                        }, [])
+                      {uniqueRecords
                         .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
                         .map((record: any) => (
                           <div 
