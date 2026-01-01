@@ -14,9 +14,21 @@ export const login = async (req, res) => {
     }
 
     const { rollNumber, password } = req.body;
-    const user = await User.findOne({ rollNumber });
+    console.log('Login attempt:', { rollNumber, password: '***' });
     
-    if (!user || !(await user.comparePassword(password))) {
+    const user = await User.findOne({ rollNumber });
+    console.log('User found:', user ? 'Yes' : 'No');
+    
+    if (!user) {
+      console.log('No user found with rollNumber:', rollNumber);
+      return res.status(401).json({ error: 'Invalid roll number or password' });
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    console.log('Password valid:', isPasswordValid);
+    
+    if (!isPasswordValid) {
+      console.log('Password comparison failed');
       return res.status(401).json({ error: 'Invalid roll number or password' });
     }
 
@@ -35,6 +47,7 @@ export const login = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
