@@ -35,7 +35,8 @@ const StudentAttendance: React.FC = () => {
     .filter((record: any) => record.status === 'absent')
     .forEach((record: any) => {
       const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
-      if (!absentDatesMap.has(dateKey) || new Date(record.createdAt || record.date) > new Date(absentDatesMap.get(dateKey).createdAt || absentDatesMap.get(dateKey).date)) {
+      const existingRecord = absentDatesMap.get(dateKey);
+      if (!existingRecord || new Date(record.updatedAt || record.createdAt || record.date) > new Date(existingRecord.updatedAt || existingRecord.createdAt || existingRecord.date)) {
         absentDatesMap.set(dateKey, record);
       }
     });
@@ -170,7 +171,10 @@ const StudentAttendance: React.FC = () => {
                   {absentDates.length > 0 ? (
                     <div className="space-y-3">
                       {absentDates.map((record: any) => (
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                        <div 
+                          key={record._id} 
+                          className="flex items-center justify-between p-4 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800"
+                        >
                           <span className="text-sm font-medium text-red-800 dark:text-red-200 flex-1 mr-3">
                             {format(new Date(record.date), 'EEEE, MMM d, yyyy')}
                           </span>
@@ -209,7 +213,8 @@ const StudentAttendance: React.FC = () => {
                         const recordsMap = new Map();
                         attendanceRecords.forEach((record: any) => {
                           const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
-                          if (!recordsMap.has(dateKey) || new Date(record.createdAt || record.date) > new Date(recordsMap.get(dateKey).createdAt || recordsMap.get(dateKey).date)) {
+                          const existingRecord = recordsMap.get(dateKey);
+                          if (!existingRecord || new Date(record.updatedAt || record.createdAt || record.date) > new Date(existingRecord.updatedAt || existingRecord.createdAt || existingRecord.date)) {
                             recordsMap.set(dateKey, record);
                           }
                         });
