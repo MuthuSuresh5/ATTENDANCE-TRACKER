@@ -1,5 +1,5 @@
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://attendance-backend.onrender.com/api' 
+  ? 'https://attendance-backend-kuqk.onrender.com/api' 
   : 'http://localhost:5000/api';
 
 class ApiService {
