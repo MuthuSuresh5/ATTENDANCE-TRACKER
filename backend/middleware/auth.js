@@ -18,8 +18,11 @@ export const auth = async (req, res, next) => {
 };
 
 export const adminAuth = (req, res, next) => {
+  console.log('Admin auth check - User role:', req.user?.role);
   if (req.user.role !== 'admin') {
+    console.log('Access denied - not admin');
     return res.status(403).json({ error: 'Admin access required' });
   }
+  console.log('Admin auth passed');
   next();
 };
