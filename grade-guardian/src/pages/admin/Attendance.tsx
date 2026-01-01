@@ -38,16 +38,16 @@ const AdminAttendance: React.FC = () => {
     const dateStr = date.toISOString().split('T')[0];
     
     try {
-      const response = await apiService.getAttendance();
+      // Get attendance for all students on the selected date
+      const response = await apiService.getAttendance({
+        startDate: dateStr,
+        endDate: dateStr
+      });
       
       setAttendanceData(
         students.map((s: any) => {
           const existing = response.data.find(
-            (r: any) => {
-              const recordDate = new Date(r.date).toISOString().split('T')[0];
-              const studentMatch = (r.studentId._id || r.studentId) === s._id;
-              return recordDate === dateStr && studentMatch;
-            }
+            (r: any) => (r.studentId._id || r.studentId) === s._id
           );
           return { 
             studentId: s._id, 

@@ -45,11 +45,9 @@ const StudentAttendance: React.FC = () => {
 
           <Tabs defaultValue="overview" className="w-full">
             <div className="w-full overflow-x-auto mb-6">
-              <TabsList className="grid w-full grid-cols-4 min-w-[320px]">
+              <TabsList className="grid w-full grid-cols-2 min-w-[320px]">
                 <TabsTrigger value="overview" className="text-xs px-1 py-2">Overview</TabsTrigger>
-                <TabsTrigger value="monthly" className="text-xs px-1 py-2">Monthly</TabsTrigger>
                 <TabsTrigger value="absent" className="text-xs px-1 py-2">Absent</TabsTrigger>
-                <TabsTrigger value="records" className="text-xs px-1 py-2">Records</TabsTrigger>
               </TabsList>
             </div>
 
@@ -108,45 +106,6 @@ const StudentAttendance: React.FC = () => {
               </div>
             </TabsContent>
 
-            <TabsContent value="monthly" className="w-full">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Monthly Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {monthlyAttendance.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {monthlyAttendance.map((month: any) => (
-                        <div key={month.month} className="p-4 rounded-lg border bg-card">
-                          <h3 className="font-medium text-sm mb-3">{month.month}</h3>
-                          <div className="space-y-3">
-                            <div className="flex justify-between text-sm">
-                              <span>Attendance</span>
-                              <span className="font-medium">{month.percentage}%</span>
-                            </div>
-                            <div className="flex justify-between text-sm text-muted-foreground">
-                              <span>Present Days</span>
-                              <span>{month.presentDays}/{month.workingDays}</span>
-                            </div>
-                            <div className="w-full bg-muted rounded-full h-2">
-                              <div 
-                                className="h-2 rounded-full bg-primary" 
-                                style={{ width: `${month.percentage}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Calendar className="h-10 w-10 mx-auto mb-4 opacity-50" />
-                      <p>No monthly data available</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             <TabsContent value="absent" className="w-full">
               <Card>
@@ -189,41 +148,6 @@ const StudentAttendance: React.FC = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="records" className="w-full">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Attendance Records</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {attendanceRecords.length > 0 ? (
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {attendanceRecords.map((record: any) => (
-                        <div 
-                          key={record._id} 
-                          className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                        >
-                          <span className="text-sm font-medium flex-1 mr-3">
-                            {format(new Date(record.date), 'MMM d, yyyy')}
-                          </span>
-                          <span className={`text-xs px-3 py-1 rounded-full flex-shrink-0 ${
-                            record.status === 'present' 
-                              ? 'bg-attendance-good text-white' 
-                              : 'bg-attendance-danger text-white'
-                          }`}>
-                            {record.status === 'present' ? 'Present' : 'Absent'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Calendar className="h-10 w-10 mx-auto mb-4 opacity-50" />
-                      <p>No attendance records found</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
           </Tabs>
         </div>
       </div>
