@@ -8,7 +8,9 @@ export const useAttendanceSummary = (studentId?: string) => {
   return useQuery({
     queryKey: ['attendanceSummary', studentId || user?.id],
     queryFn: () => apiService.getAttendanceSummary(studentId),
-    enabled: !!(studentId || user?.id)
+    enabled: !!(studentId || user?.id),
+    staleTime: 0, // Always refetch
+    cacheTime: 0  // Don't cache
   });
 };
 
@@ -24,7 +26,9 @@ export const useMonthlyAttendance = (studentId?: string) => {
 export const useAttendance = (params?: { studentId?: string; startDate?: string; endDate?: string }) => {
   return useQuery({
     queryKey: ['attendance', params],
-    queryFn: () => apiService.getAttendance(params)
+    queryFn: () => apiService.getAttendance(params),
+    staleTime: 0, // Always refetch
+    cacheTime: 0  // Don't cache
   });
 };
 
