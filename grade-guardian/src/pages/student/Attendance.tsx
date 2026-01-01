@@ -170,9 +170,8 @@ const StudentAttendance: React.FC = () => {
                           <span className="text-sm font-medium text-red-800 dark:text-red-200 flex-1 mr-3">
                             {(() => {
                               const date = new Date(record.date);
-                              // Handle UTC date properly to avoid timezone shift
-                              const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-                              return format(utcDate, 'EEEE, MMM d, yyyy');
+                              // Format date using local timezone to match how it was stored
+                              return format(date, 'EEEE, MMM d, yyyy');
                             })()}
                           </span>
                           <span className="text-xs bg-red-600 dark:bg-red-700 text-white px-3 py-1 rounded-full flex-shrink-0">

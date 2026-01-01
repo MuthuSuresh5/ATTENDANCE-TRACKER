@@ -35,7 +35,11 @@ const AdminAttendance: React.FC = () => {
   const initializeForDate = async (date: Date) => {
     setSelectedDate(date);
     setIsInitialized(false);
-    const dateStr = date.toISOString().split('T')[0];
+    // Format date as YYYY-MM-DD in local timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     
     try {
       // Get attendance for all students on the selected date
@@ -97,7 +101,11 @@ const AdminAttendance: React.FC = () => {
       return;
     }
 
-    const dateStr = selectedDate.toISOString().split('T')[0];
+    // Format date as YYYY-MM-DD in local timezone to avoid UTC conversion
+    const year = selectedDate.getFullYear();
+    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const day = String(selectedDate.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
     
     try {
       // Mark attendance for each student
