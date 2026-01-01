@@ -76,74 +76,27 @@ export const getAttendance = async (req, res) => {
         $gte: start,
         $lte: end
       };
-      console.log('Date query:', { start, end, startDate, endDate });
     }
 
-    console.log('Attendance query:', query);
-    
-    // Use aggregation to get unique records per date
-    const attendance = await Attendance.aggregate([
-      { $match: query },
-      {
-        $addFields: {
-          dateString: {
-            $dateToString: {
-              format: "%Y-%m-%d",
-              date: "$date"
-            }
-          }
-        }
-      },
-      {
-        $sort: { 
-          studentId: 1,
-          dateString: 1,
-          updatedAt: -1,
-          createdAt: -1
-        }
-      },
-      {
-        $group: {
-          _id: {
-            studentId: "$studentId",
-            dateString: "$dateString"
-          },
-          latestRecord: { $first: "$$ROOT" }
-        }
-      },
-      { $replaceRoot: { newRoot: "$latestRecord" } },
-      {
-        $lookup: {
-          from: "students",
-          localField: "studentId",
-          foreignField: "_id",
-          as: "studentId"
-        }
-      },
-      {
-        $unwind: {
-          path: "$studentId",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $project: {
-          _id: 1,
-          date: 1,
-          status: 1,
-          markedBy: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          "studentId._id": 1,
-          "studentId.name": 1,
-          "studentId.rollNumber": 1
-        }
-      },
-      { $sort: { date: -1 } }
-    ]);
+    // Get all records first
+    const allRecords = await Attendance.find(query)
+      .populate('studentId', 'name rollNumber')
+      .sort({ date: -1, updatedAt: -1, createdAt: -1 });
 
-    console.log('Found attendance records:', attendance.length);
-    res.json({ success: true, data: attendance });
+    // Deduplicate by date on the server side
+    const uniqueRecords = [];
+    const seenDates = new Set();
+    
+    for (const record of allRecords) {
+      const dateKey = record.date.toISOString().split('T')[0];
+      if (!seenDates.has(dateKey)) {
+        seenDates.add(dateKey);
+        uniqueRecords.push(record);
+      }
+    }
+
+    console.log('Total records:', allRecords.length, 'Unique records:', uniqueRecords.length);
+    res.json({ success: true, data: uniqueRecords });
   } catch (error) {
     console.error('Get attendance error:', error);
     res.status(500).json({ error: 'Server error' });
