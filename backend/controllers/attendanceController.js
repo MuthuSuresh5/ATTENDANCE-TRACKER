@@ -130,8 +130,11 @@ export const getAttendanceSummary = async (req, res) => {
     const studentId = req.params.studentId || req.user._id;
     console.log('Getting attendance summary for student:', studentId);
     
-    const records = await Attendance.find({ studentId }).sort({ date: -1 });
-    console.log('Found records:', records.length);
+    const records = await Attendance.find({ 
+      studentId: new mongoose.Types.ObjectId(studentId) 
+    }).sort({ date: -1 });
+    
+    console.log('Found records for summary:', records.length);
     
     const totalDays = records.length;
     const presentDays = records.filter(r => r.status === 'present').length;
@@ -162,7 +165,10 @@ export const getMonthlyAttendance = async (req, res) => {
   try {
     const studentId = req.params.studentId || req.user._id;
     
-    const records = await Attendance.find({ studentId });
+    const records = await Attendance.find({ 
+      studentId: new mongoose.Types.ObjectId(studentId) 
+    });
+    
     const monthlyData = {};
 
     records.forEach(record => {

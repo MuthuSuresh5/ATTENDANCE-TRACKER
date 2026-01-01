@@ -110,6 +110,46 @@ const StudentAttendance: React.FC = () => {
               </div>
             </TabsContent>
 
+            <TabsContent value="monthly" className="w-full">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Monthly Breakdown</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {monthlyAttendance.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {monthlyAttendance.map((month: any) => (
+                        <div key={month.month} className="p-4 rounded-lg border bg-card">
+                          <h3 className="font-medium text-sm mb-3">{month.month}</h3>
+                          <div className="space-y-3">
+                            <div className="flex justify-between text-sm">
+                              <span>Attendance</span>
+                              <span className="font-medium">{month.percentage}%</span>
+                            </div>
+                            <div className="flex justify-between text-sm text-muted-foreground">
+                              <span>Present Days</span>
+                              <span>{month.presentDays}/{month.workingDays}</span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div 
+                                className="h-2 rounded-full bg-primary" 
+                                style={{ width: `${month.percentage}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Calendar className="h-10 w-10 mx-auto mb-4 opacity-50" />
+                      <p>No monthly data available</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
 
             <TabsContent value="absent" className="w-full">
               <Card>
