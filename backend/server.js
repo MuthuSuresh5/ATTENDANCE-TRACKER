@@ -33,6 +33,30 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Grade Guardian API is running' });
 });
 
+// Test user creation endpoint (temporary)
+app.post('/api/create-test-user', async (req, res) => {
+  try {
+    const User = (await import('./models/User.js')).default;
+    
+    // Delete existing test user
+    await User.deleteOne({ rollNumber: 'TEST001' });
+    
+    // Create new test user
+    const testUser = new User({
+      name: 'Test Admin',
+      email: 'test@college.edu',
+      password: 'test123',
+      rollNumber: 'TEST001',
+      role: 'admin'
+    });
+    
+    await testUser.save();
+    res.json({ success: true, message: 'Test user created with password: test123' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('Connected to MongoDB'))
