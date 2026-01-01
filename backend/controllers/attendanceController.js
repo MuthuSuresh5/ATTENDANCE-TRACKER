@@ -81,9 +81,66 @@ export const getAttendance = async (req, res) => {
 
     console.log('Attendance query:', query);
     
-    const attendance = await Attendance.find(query)
-      .populate('studentId', 'name rollNumber')
-      .sort({ date: -1 });
+    // Use aggregation to get unique records per date
+    const attendance = await Attendance.aggregate([
+      { $match: query },
+      {
+        $addFields: {
+          dateString: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$date"
+            }
+          }
+        }
+      },
+      {
+        $sort: { 
+          studentId: 1,
+          dateString: 1,
+          updatedAt: -1,
+          createdAt: -1
+        }
+      },
+      {
+        $group: {
+          _id: {
+            studentId: "$studentId",
+            dateString: "$dateString"
+          },
+          latestRecord: { $first: "$$ROOT" }
+        }
+      },
+      { $replaceRoot: { newRoot: "$latestRecord" } },
+      {
+        $lookup: {
+          from: "students",
+          localField: "studentId",
+          foreignField: "_id",
+          as: "studentId"
+        }
+      },
+      {
+        $unwind: {
+          path: "$studentId",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          date: 1,
+          status: 1,
+          markedBy: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          "studentId._id": 1,
+          "studentId.name": 1,
+          "studentId.rollNumber": 1
+        }
+      },
+      { $sort: { date: -1 } }
+    ]);
 
     console.log('Found attendance records:', attendance.length);
     res.json({ success: true, data: attendance });
