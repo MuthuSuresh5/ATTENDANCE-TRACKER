@@ -15,7 +15,7 @@ const app = express();
 // Middleware
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://attendance-frontend.vercel.app'] 
+    ? ['https://attendance-tracker-sigma-ruddy.vercel.app'] 
     : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8080'],
   credentials: true
 };
