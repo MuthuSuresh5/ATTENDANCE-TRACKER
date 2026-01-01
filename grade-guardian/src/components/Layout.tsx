@@ -63,9 +63,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </button>
             <Link to={user?.role === 'admin' ? '/admin/attendance' : '/dashboard'} className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">AT</span>
+                <span className="text-primary-foreground font-bold text-sm">AD</span>
               </div>
-              <span className="font-semibold text-lg hidden sm:inline">AttendTrack</span>
+              <span className="font-semibold text-lg hidden sm:inline">AIDS D- Attendance</span>
             </Link>
           </div>
 

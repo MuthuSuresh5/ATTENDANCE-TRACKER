@@ -81,36 +81,9 @@ export const getAttendance = async (req, res) => {
 
     console.log('Attendance query:', query);
     
-    // Use aggregation to ensure unique records per student per date
-    const attendance = await Attendance.aggregate([
-      { $match: query },
-      {
-        $group: {
-          _id: {
-            studentId: '$studentId',
-            date: {
-              $dateToString: {
-                format: '%Y-%m-%d',
-                date: '$date'
-              }
-            }
-          },
-          doc: { $last: '$$ROOT' } // Get the most recent record for each date
-        }
-      },
-      { $replaceRoot: { newRoot: '$doc' } },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'studentId',
-          foreignField: '_id',
-          as: 'studentId',
-          pipeline: [{ $project: { name: 1, rollNumber: 1 } }]
-        }
-      },
-      { $unwind: '$studentId' },
-      { $sort: { date: -1 } }
-    ]);
+    const attendance = await Attendance.find(query)
+      .populate('studentId', 'name rollNumber')
+      .sort({ date: -1 });
 
     console.log('Found attendance records:', attendance.length);
     res.json({ success: true, data: attendance });
@@ -123,8 +96,11 @@ export const getAttendance = async (req, res) => {
 export const getAttendanceSummary = async (req, res) => {
   try {
     const studentId = req.params.studentId || req.user._id;
+    console.log('Getting attendance summary for student:', studentId);
     
     const records = await Attendance.find({ studentId }).sort({ date: -1 });
+    console.log('Found records:', records.length);
+    
     const totalDays = records.length;
     const presentDays = records.filter(r => r.status === 'present').length;
     const percentage = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
@@ -139,11 +115,13 @@ export const getAttendanceSummary = async (req, res) => {
       }
     }
 
+    console.log('Summary:', { totalDays, presentDays, percentage, streak });
     res.json({
       success: true,
       data: { totalDays, presentDays, percentage, streak }
     });
   } catch (error) {
+    console.error('Attendance summary error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

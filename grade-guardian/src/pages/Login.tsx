@@ -56,9 +56,9 @@ const Login: React.FC = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="h-14 w-14 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
-            <span className="text-primary-foreground font-bold text-xl">AT</span>
+            <span className="text-primary-foreground font-bold text-xl">AD</span>
           </div>
-          <h1 className="text-2xl font-bold">AttendTrack</h1>
+          <h1 className="text-2xl font-bold">AIDS D- Attendance</h1>
           <p className="text-muted-foreground mt-1">College Attendance & Assignment Tracker</p>
         </div>
 
