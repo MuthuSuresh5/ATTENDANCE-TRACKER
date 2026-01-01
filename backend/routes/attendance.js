@@ -21,7 +21,7 @@ router.post('/mark', [auth, adminAuth,
 router.get('/', auth, getAttendance);
 router.get('/summary/:studentId?', auth, getAttendanceSummary);
 router.get('/monthly/:studentId?', auth, getMonthlyAttendance);
-router.get('/history', [auth, adminAuth], getEditHistory);
+router.get('/history', auth, getEditHistory);
 router.get('/export', [auth, adminAuth], exportAttendance);
 
 export default router;
