@@ -13,27 +13,27 @@ export const markAttendance = async (req, res) => {
     }
 
     const { studentId, date, status } = req.body;
-    // Parse date string directly to avoid timezone issues
+    // Create date in UTC to avoid timezone issues
     const [year, month, day] = date.split('-');
-    const attendanceDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const attendanceDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
     
     console.log('Marking attendance:', { studentId, date, status, attendanceDate });
 
     // Use findOneAndUpdate with upsert to prevent duplicates
     const result = await Attendance.findOneAndUpdate(
       { 
-        studentId, 
+        studentId: new mongoose.Types.ObjectId(studentId), 
         date: {
-          $gte: new Date(attendanceDate.getFullYear(), attendanceDate.getMonth(), attendanceDate.getDate()),
-          $lt: new Date(attendanceDate.getFullYear(), attendanceDate.getMonth(), attendanceDate.getDate() + 1)
+          $gte: new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day))),
+          $lt: new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day) + 1))
         }
       },
       {
-        studentId,
+        studentId: new mongoose.Types.ObjectId(studentId),
         date: attendanceDate,
         status,
         markedBy: req.user._id,
-        $setOnInsert: { createdAt: new Date() }
+        updatedAt: new Date()
       },
       { 
         upsert: true, 
@@ -41,20 +41,6 @@ export const markAttendance = async (req, res) => {
         runValidators: true
       }
     );
-
-    // Log edit if this was an update (not insert)
-    if (result && !result.isNew) {
-      const oldRecord = await Attendance.findById(result._id);
-      if (oldRecord && oldRecord.status !== status) {
-        await new AttendanceEdit({
-          studentId,
-          date: attendanceDate,
-          oldStatus: oldRecord.status,
-          newStatus: status,
-          editedBy: req.user._id
-        }).save();
-      }
-    }
 
     console.log('Attendance record saved:', result);
     res.json({ success: true, message: 'Attendance marked successfully' });
