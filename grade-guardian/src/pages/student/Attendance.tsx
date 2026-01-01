@@ -30,20 +30,24 @@ const StudentAttendance: React.FC = () => {
   const attendanceRecords = attendanceData?.data || [];
   
   // Get absent dates - deduplicate by date and keep most recent record for each date
-  const absentDatesMap = new Map();
-  attendanceRecords
+  const absentDates = attendanceRecords
     .filter((record: any) => record.status === 'absent')
-    .forEach((record: any) => {
+    .reduce((unique: any[], record: any) => {
       const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
-      const existingRecord = absentDatesMap.get(dateKey);
-      if (!existingRecord || new Date(record.updatedAt || record.createdAt || record.date) > new Date(existingRecord.updatedAt || existingRecord.createdAt || existingRecord.date)) {
-        absentDatesMap.set(dateKey, record);
+      const existingIndex = unique.findIndex(r => format(new Date(r.date), 'yyyy-MM-dd') === dateKey);
+      if (existingIndex === -1) {
+        unique.push(record);
+      } else {
+        const existingTime = new Date(unique[existingIndex].updatedAt || unique[existingIndex].createdAt || unique[existingIndex].date).getTime();
+        const currentTime = new Date(record.updatedAt || record.createdAt || record.date).getTime();
+        if (currentTime > existingTime) {
+          unique[existingIndex] = record;
+        }
       }
-    });
-  
-  const absentDates = Array.from(absentDatesMap.values())
+      return unique;
+    }, [])
     .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10); // Show last 10 absent dates
+    .slice(0, 10);
 
   return (
     <Layout>
@@ -208,37 +212,40 @@ const StudentAttendance: React.FC = () => {
                 <CardContent>
                   {attendanceRecords.length > 0 ? (
                     <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {(() => {
-                        // Deduplicate records by date, keeping the most recent record for each date
-                        const recordsMap = new Map();
-                        attendanceRecords.forEach((record: any) => {
+                      {attendanceRecords
+                        .reduce((unique: any[], record: any) => {
                           const dateKey = format(new Date(record.date), 'yyyy-MM-dd');
-                          const existingRecord = recordsMap.get(dateKey);
-                          if (!existingRecord || new Date(record.updatedAt || record.createdAt || record.date) > new Date(existingRecord.updatedAt || existingRecord.createdAt || existingRecord.date)) {
-                            recordsMap.set(dateKey, record);
+                          const existingIndex = unique.findIndex(r => format(new Date(r.date), 'yyyy-MM-dd') === dateKey);
+                          if (existingIndex === -1) {
+                            unique.push(record);
+                          } else {
+                            // Keep the record with the latest timestamp
+                            const existingTime = new Date(unique[existingIndex].updatedAt || unique[existingIndex].createdAt || unique[existingIndex].date).getTime();
+                            const currentTime = new Date(record.updatedAt || record.createdAt || record.date).getTime();
+                            if (currentTime > existingTime) {
+                              unique[existingIndex] = record;
+                            }
                           }
-                        });
-                        
-                        return Array.from(recordsMap.values())
-                          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                          .map((record: any) => (
-                            <div 
-                              key={`${record._id}-${format(new Date(record.date), 'yyyy-MM-dd')}`} 
-                              className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
-                            >
-                              <span className="text-sm font-medium flex-1 mr-3">
-                                {format(new Date(record.date), 'MMM d, yyyy')}
-                              </span>
-                              <span className={`text-xs px-3 py-1 rounded-full flex-shrink-0 ${
-                                record.status === 'present' 
-                                  ? 'bg-attendance-good text-white' 
-                                  : 'bg-attendance-danger text-white'
-                              }`}>
-                                {record.status === 'present' ? 'Present' : 'Absent'}
-                              </span>
-                            </div>
-                          ));
-                      })()
+                          return unique;
+                        }, [])
+                        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                        .map((record: any) => (
+                          <div 
+                            key={`${record._id}-${format(new Date(record.date), 'yyyy-MM-dd')}`} 
+                            className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
+                          >
+                            <span className="text-sm font-medium flex-1 mr-3">
+                              {format(new Date(record.date), 'MMM d, yyyy')}
+                            </span>
+                            <span className={`text-xs px-3 py-1 rounded-full flex-shrink-0 ${
+                              record.status === 'present' 
+                                ? 'bg-attendance-good text-white' 
+                                : 'bg-attendance-danger text-white'
+                            }`}>
+                              {record.status === 'present' ? 'Present' : 'Absent'}
+                            </span>
+                          </div>
+                        ))
                       }
                     </div>
                   ) : (
