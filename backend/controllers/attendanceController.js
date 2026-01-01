@@ -80,7 +80,9 @@ export const getAttendance = async (req, res) => {
     const dateMap = new Map();
     
     for (const record of allRecords) {
-      const dateKey = record.date.toISOString().split('T')[0];
+      // Use UTC date components to avoid timezone issues
+      const date = new Date(record.date);
+      const dateKey = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
       const studentKey = record.studentId._id.toString();
       const compositeKey = `${studentKey}-${dateKey}`;
       
