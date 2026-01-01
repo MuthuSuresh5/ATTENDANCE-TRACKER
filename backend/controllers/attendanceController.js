@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 import { startOfDay, endOfDay, format, startOfMonth, endOfMonth, isWeekend } from 'date-fns';
 import Attendance from '../models/Attendance.js';
@@ -68,7 +69,9 @@ export const getAttendance = async (req, res) => {
     const { studentId, startDate, endDate } = req.query;
     const query = {};
 
-    if (studentId) query.studentId = studentId;
+    if (studentId) {
+      query.studentId = new mongoose.Types.ObjectId(studentId);
+    }
     if (startDate && endDate) {
       const start = startOfDay(new Date(startDate));
       const end = endOfDay(new Date(endDate));
@@ -78,27 +81,34 @@ export const getAttendance = async (req, res) => {
       };
     }
 
+    console.log('Attendance query:', query);
+
     // Get all records first
     const allRecords = await Attendance.find(query)
       .populate('studentId', 'name rollNumber')
       .sort({ date: -1 });
+
+    console.log('Found records before deduplication:', allRecords.length);
 
     // Deduplicate by date, keeping the LATEST record for each date
     const dateMap = new Map();
     
     for (const record of allRecords) {
       const dateKey = record.date.toISOString().split('T')[0];
-      const existingRecord = dateMap.get(dateKey);
+      const studentKey = record.studentId._id.toString();
+      const compositeKey = `${studentKey}-${dateKey}`;
+      
+      const existingRecord = dateMap.get(compositeKey);
       
       if (!existingRecord) {
-        dateMap.set(dateKey, record);
+        dateMap.set(compositeKey, record);
       } else {
         // Compare timestamps to keep the latest record
         const existingTime = new Date(existingRecord.updatedAt || existingRecord.createdAt).getTime();
         const currentTime = new Date(record.updatedAt || record.createdAt).getTime();
         
         if (currentTime > existingTime) {
-          dateMap.set(dateKey, record);
+          dateMap.set(compositeKey, record);
         }
       }
     }
@@ -107,7 +117,7 @@ export const getAttendance = async (req, res) => {
     const uniqueRecords = Array.from(dateMap.values())
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    console.log('Total records:', allRecords.length, 'Unique records:', uniqueRecords.length);
+    console.log('Unique records after deduplication:', uniqueRecords.length);
     res.json({ success: true, data: uniqueRecords });
   } catch (error) {
     console.error('Get attendance error:', error);

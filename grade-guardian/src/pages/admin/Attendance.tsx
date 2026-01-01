@@ -47,10 +47,7 @@ const AdminAttendance: React.FC = () => {
       setAttendanceData(
         students.map((s: any) => {
           const existing = response.data.find(
-            (r: any) => {
-              const studentId = r.studentId._id || r.studentId;
-              return studentId === s._id;
-            }
+            (r: any) => r.studentId._id.toString() === s._id.toString()
           );
           return { 
             studentId: s._id, 
